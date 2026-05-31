@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OPNSwap — DeFi on OPN Chain</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #030a0f;
+    --surface: #071520;
+    --surface2: #0c1e2e;
+    --border: #0e2d45;
+    --accent: #00d4ff;
+    --accent2: #00ff88;
+    --accent3: #ff6b35;
+    --text: #e8f4ff;
+    --muted: #4a7a9b;
+    --danger: #ff4757;
+    --font: 'Syne', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.15;
+  }
+  .orb1 { width: 400px; height: 400px; background: var(--accent); top: -100px; left: -100px; }
+  .orb2 { width: 300px; height: 300px; background: var(--accent2); bottom: -50px; right: -50px; }
+
+  /* Layout */
+  .app { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 24px 16px; }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+  }
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+  .logo span { color: var(--accent); }
+
+  /* Connect button */
+  .btn-connect {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none;
+    color: #000;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 10px 20px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-connect:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(0,212,255,0.3); }
+  .btn-connect.connected {
+    background: var(--surface2);
+    color: var(--accent2);
+    border: 1px solid var(--border);
+  }
+
+  /* Network badge */
+  .network-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--muted);
+  }
+  .network-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent2);
+    box-shadow: 0 0 6px var(--accent2);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  /* Pool stats */
+  .pool-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    text-align: center;
+  }
+  .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-value { font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 4px;
+    margin-bottom: 16px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--muted);
+    font-family: var(--font);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab.active {
+    background: var(--surface2);
+    color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--border);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 20px;
+  }
+
+  /* Token input */
+  .token-input-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 8px;
+    transition: border-color 0.2s;
+  }
+  .token-input-wrap:focus-within { border-color: var(--accent); }
+  .input-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .input-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .balance-text { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+  .balance-text span { color: var(--accent2); cursor: pointer; }
+  .input-row { display: flex; align-items: center; gap: 10px; }
+  .amount-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 22px;
+    font-weight: 500;
+    width: 0;
+  }
+  .amount-input::placeholder { color: var(--muted); }
+  .token-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 14px;
+    white-space: nowrap;
+  }
+  .token-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+  }
+  .dot-a { background: var(--accent); }
+  .dot-b { background: var(--accent2); }
+
+  /* Swap arrow */
+  .swap-arrow {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0;
+  }
+  .arrow-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.2s;
+  }
+  .arrow-btn:hover { background: var(--border); transform: rotate(180deg); }
+
+  /* Info row */
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+  .info-row .label { color: var(--muted); }
+  .info-row .value { font-family: var(--mono); font-weight: 500; color: var(--text); }
+
+  /* Main action button */
+  .btn-action {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #000;
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    margin-top: 16px;
+    transition: all 0.2s;
+    letter-spacing: 0.3px;
+  }
+  .btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,212,255,0.25); }
+  .btn-action:disabled {
+    background: var(--surface2);
+    color: var(--muted);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .btn-action.danger { background: linear-gradient(135deg, var(--danger), var(--accent3)); }
+
+  /* Slippage */
+  .slippage-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .slippage-label { font-size: 12px; color: var(--muted); }
+  .slippage-btns { display: flex; gap: 6px; margin-left: auto; }
+  .slip-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .slip-btn.active { border-color: var(--accent); color: var(--accent); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-size: 14px;
+    max-width: 400px;
+    text-align: center;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: var(--accent2); color: var(--accent2); }
+  .toast.error { border-color: var(--danger); color: var(--danger); }
+  .toast.loading { border-color: var(--accent); color: var(--accent); }
+
+  /* Tx link */
+  .tx-link { color: var(--accent); text-decoration: underline; font-family: var(--mono); font-size: 12px; }
+
+  /* Section title */
+  .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
+
+  /* LP position */
+  .lp-position {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 16px;
+  }
+  .lp-row { display: flex; justify-content: space-between; font-size: 13px; padding: 4px 0; }
+  .lp-row .lbl { color: var(--muted); }
+  .lp-row .val { font-family: var(--mono); color: var(--accent2); }
+
+  /* Animations */
+  @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .card { animation: fadeIn 0.3s ease; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div class="app">
+  <!-- Header -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      OPN<span>Swap</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <div class="network-badge">
+        <div class="network-dot"></div>
+        OPN Testnet
+      </div>
+      <button class="btn-connect" id="connectBtn" onclick="connectWallet()">Connect Wallet</button>
+    </div>
+  </header>
+
+  <!-- Pool Stats -->
+  <div class="pool-stats">
+    <div class="stat-card">
+      <div class="stat-label">Reserve A</div>
+      <div class="stat-value" id="reserveA">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Reserve B</div>
+      <div class="stat-value" id="reserveB">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">LP Supply</div>
+      <div class="stat-value" id="lpSupply">—</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('swap')">⇄ Swap</button>
+    <button class="tab" onclick="switchTab('add')">＋ Add Liquidity</button>
+    <button class="tab" onclick="switchTab('remove')">－ Remove</button>
+  </div>
+
+  <!-- SWAP TAB -->
+  <div id="tab-swap" class="card">
+    <div class="token-input-wrap">
+      <div class="input-top">
+        <span class="input-label">You Pay</span>
+        <span class="balance-text">Balance: <span id="balA" onclick="setMaxA()">0</span></span>
+      </div>
+      <div class="input-row">
+        <input class="amount-input" id="swapAmountIn" type="number" placeholder="0.0" oninput="calcSwapOut()"/>
+        <div class="token-badge">
+          <div class="token-dot dot-a"></div>
+          USDO
+        </div>
+      </div>
+    </div>
+
+    <div class="swap-arrow">
+      <div class="arrow-btn" onclick="flipSwap()">⇅</div>
+    </div>
+
+    <div class="token-input-wrap">
+      <div class="input-top">
+        <span class="input-label">You Receive</span>
+        <span class="balance-text">Balance: <span id="balB">0</span></span>
+      </div>
+      <div class="input-row">
+        <input class="amount-input" id="swapAmountOut" type="number" placeholder="0.0" readonly/>
+        <div class="token-badge">
+          <div class="token-dot dot-b"></div>
+          OPNB
+        </div>
+      </div>
+    </div>
+
+    <div class="slippage-row">
+      <span class="slippage-label">Slippage:</span>
+      <div class="slippage-btns">
+        <button class="slip-btn active" onclick="setSlippage(0.5, this)">0.5%</button>
+        <button class="slip-btn" onclick="setSlippage(1, this)">1%</button>
+        <button class="slip-btn" onclick="setSlippage(3, this)">3%</button>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Rate</span>
+      <span class="value" id="swapRate">—</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Fee (0.3%)</span>
+      <span class="value" id="swapFee">—</span>
+    </div>
+    <div class="info-row">
+      <span class="label">Min Received</span>
+      <span class="value" id="swapMin">—</span>
+    </div>
+
+    <button class="btn-action" id="swapBtn" onclick="executeSwap()" disabled>Connect Wallet</button>
+  </div>
+
+  <!-- ADD LIQUIDITY TAB -->
+  <div id="tab-add" class="card hidden">
+    <div class="token-input-wrap">
+      <div class="input-top">
+        <span class="input-label">Token A Amount</span>
+        <span class="balance-text">Balance: <span id="addBalA">0</span></span>
+      </div>
+      <div class="input-row">
+        <input class="amount-input" id="addAmountA" type="number" placeholder="0.0" oninput="calcAddB()"/>
+        <div class="token-badge"><div class="token-dot dot-a"></div>USDO</div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:center;margin:4px 0;color:var(--muted);font-size:20px">+</div>
+
+    <div class="token-input-wrap">
+      <div class="input-top">
+        <span class="input-label">Token B Amount</span>
+        <span class="balance-text">Balance: <span id="addBalB">0</span></span>
+      </div>
+      <div class="input-row">
+        <input class="amount-input" id="addAmountB" type="number" placeholder="0.0"/>
+        <div class="token-badge"><div class="token-dot dot-b"></div>OPNB</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="label">Pool Share</span>
+      <span class="value" id="poolShare">—</span>
+    </div>
+    <div class="info-row">
+      <span class="label">LP Tokens to Receive</span>
+      <span class="value" id="lpEstimate">—</span>
+    </div>
+
+    <button class="btn-action" id="addBtn" onclick="executeAddLiquidity()" disabled>Connect Wallet</button>
+  </div>
+
+  <!-- REMOVE LIQUIDITY TAB -->
+  <div id="tab-remove" class="card hidden">
+    <div class="lp-position">
+      <div class="section-title">Your Position</div>
+      <div class="lp-row"><span class="lbl">LP Tokens</span><span class="val" id="myLP">0</span></div>
+      <div class="lp-row"><span class="lbl">USDO Share</span><span class="val" id="myShareA">0</span></div>
+      <div class="lp-row"><span class="lbl">OPNB Share</span><span class="val" id="myShareB">0</span></div>
+    </div>
+
+    <div class="token-input-wrap" style="margin-top:16px">
+      <div class="input-top">
+        <span class="input-label">LP Tokens to Remove</span>
+        <span class="balance-text">Max: <span id="maxLP" onclick="setMaxLP()">0</span></span>
+      </div>
+      <div class="input-row">
+        <input class="amount-input" id="removeAmount" type="number" placeholder="0.0" oninput="calcRemoveOut()"/>
+        <div class="token-badge">OPN-LP</div>
+      </div>
+    </div>
+
+    <div class="info-row">
+      <span class="label">USDO Received</span>
+      <span class="value" id="removeA">—</span>
+    </div>
+    <div class="info-row">
+      <span class="label">OPNB Received</span>
+      <span class="value" id="removeB">—</span>
+    </div>
+
+    <button class="btn-action danger" id="removeBtn" onclick="executeRemoveLiquidity()" disabled>Connect Wallet</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Config — replace with your deployed addresses ─────────────────────────
+const CONFIG = {
+  chainId: 984,
+  rpc: "https://testnet-rpc.iopn.tech",
+  explorer: "https://testnet.iopn.tech",
+  TOKEN_A: "0x0000000000000000000000000000000000000000", // Replace after deploy
+  TOKEN_B: "0x0000000000000000000000000000000000000000", // Replace after deploy
+  DEX:     "0x0000000000000000000000000000000000000000", // Replace after deploy
+};
+
+const ERC20_ABI = [
+  "function balanceOf(address) view returns (uint256)",
+  "function approve(address,uint256) returns (bool)",
+  "function allowance(address,address) view returns (uint256)",
+  "function faucet() external",
+];
+const DEX_ABI = [
+  "function addLiquidity(uint256,uint256,uint256,uint256) returns (uint256,uint256,uint256)",
+  "function removeLiquidity(uint256,uint256,uint256) returns (uint256,uint256)",
+  "function swapAforB(uint256,uint256) returns (uint256)",
+  "function swapBforA(uint256,uint256) returns (uint256)",
+  "function getAmountOut(uint256,uint256,uint256) view returns (uint256)",
+  "function getPoolInfo() view returns (uint256,uint256,uint256)",
+  "function quote(uint256,uint256,uint256) view returns (uint256)",
+  "function balanceOf(address) view returns (uint256)",
+  "function totalSupply() view returns (uint256)",
+];
+
+// ── State ─────────────────────────────────────────────────────────────────
+let provider, signer, account;
+let tokenA, tokenB, dex;
+let slippage = 0.5;
+let swapDirection = "AtoB"; // "AtoB" or "BtoA"
+let poolInfo = { resA: 0n, resB: 0n, totalLP: 0n };
+
+const fmt = (v, d=4) => {
+  const n = parseFloat(ethers.utils.formatEther(v));
+  return n.toLocaleString(undefined, { maximumFractionDigits: d });
+};
+const parse = (v) => ethers.utils.parseEther(v || "0");
+
+// ── Connect ───────────────────────────────────────────────────────────────
+async function connectWallet() {
+  if (!window.ethereum) { showToast("Please install MetaMask!", "error"); return; }
+  try {
+    provider = new ethers.providers.Web3Provider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+
+    // Switch to OPN Testnet
+    const chainId = await provider.send("eth_chainId", []);
+    if (parseInt(chainId, 16) !== CONFIG.chainId) {
+      try {
+        await provider.send("wallet_switchEthereumChain", [{ chainId: "0x3D8" }]);
+      } catch(e) {
+        if (e.code === 4902) {
+          await provider.send("wallet_addEthereumChain", [{
+            chainId: "0x3D8",
+            chainName: "OPN Testnet",
+            rpcUrls: [CONFIG.rpc],
+            nativeCurrency: { name: "OPN", symbol: "OPN", decimals: 18 },
+            blockExplorerUrls: [CONFIG.explorer]
+          }]);
+        }
+      }
+      provider = new ethers.providers.Web3Provider(window.ethereum);
+    }
+
+    signer = provider.getSigner();
+    account = await signer.getAddress();
+
+    tokenA = new ethers.Contract(CONFIG.TOKEN_A, ERC20_ABI, signer);
+    tokenB = new ethers.Contract(CONFIG.TOKEN_B, ERC20_ABI, signer);
+    dex    = new ethers.Contract(CONFIG.DEX, DEX_ABI, signer);
+
+    const short = account.slice(0,6) + "..." + account.slice(-4);
+    document.getElementById("connectBtn").textContent = short;
+    document.getElementById("connectBtn").classList.add("connected");
+
+    enableButtons();
+    await refreshAll();
+    showToast("Wallet connected! ✅", "success");
+  } catch(e) {
+    showToast("Connection failed: " + e.message, "error");
+  }
+}
+
+async function refreshAll() {
+  if (!account) return;
+  try {
+    // Pool info
+    const [resA, resB, totalLP] = await dex.getPoolInfo();
+    poolInfo = { resA, resB, totalLP };
+
+    document.getElementById("reserveA").textContent = fmt(resA);
+    document.getElementById("reserveB").textContent = fmt(resB);
+    document.getElementById("lpSupply").textContent = fmt(totalLP);
+
+    // Balances
+    const bA = await tokenA.balanceOf(account);
+    const bB = await tokenB.balanceOf(account);
+    const bLP = await dex.balanceOf(account);
+
+    document.getElementById("balA").textContent = fmt(bA);
+    document.getElementById("balB").textContent = fmt(bB);
+    document.getElementById("addBalA").textContent = fmt(bA);
+    document.getElementById("addBalB").textContent = fmt(bB);
+    document.getElementById("myLP").textContent = fmt(bLP);
+    document.getElementById("maxLP").textContent = fmt(bLP);
+
+    // LP position
+    if (poolInfo.totalLP > 0n) {
+      const shareA = (bLP * poolInfo.resA) / poolInfo.totalLP;
+      const shareB = (bLP * poolInfo.resB) / poolInfo.totalLP;
+      document.getElementById("myShareA").textContent = fmt(shareA);
+      document.getElementById("myShareB").textContent = fmt(shareB);
+    }
+
+    // Rate
+    if (poolInfo.resA > 0n && poolInfo.resB > 0n) {
+      const rate = parseFloat(ethers.utils.formatEther(poolInfo.resB)) /
+                   parseFloat(ethers.utils.formatEther(poolInfo.resA));
+      document.getElementById("swapRate").textContent =
+        `1 USDO = ${rate.toFixed(4)} OPNB`;
+    }
+  } catch(e) { console.error(e); }
+}
+
+// ── Tab Switching ─────────────────────────────────────────────────────────
+function switchTab(tab) {
+  ["swap","add","remove"].forEach(t => {
+    document.getElementById("tab-"+t).classList.add("hidden");
+    document.querySelectorAll(".tab")[["swap","add","remove"].indexOf(t)].classList.remove("active");
+  });
+  document.getElementById("tab-"+tab).classList.remove("hidden");
+  document.querySelectorAll(".tab")[["swap","add","remove"].indexOf(tab)].classList.add("active");
+}
+
+// ── Swap Logic ────────────────────────────────────────────────────────────
+async function calcSwapOut() {
+  const inVal = document.getElementById("swapAmountIn").value;
+  if (!inVal || !account || poolInfo.resA === 0n) return;
+  try {
+    const amtIn = parse(inVal);
+    const [resIn, resOut] = swapDirection === "AtoB"
+      ? [poolInfo.resA, poolInfo.resB]
+      : [poolInfo.resB, poolInfo.resA];
+    const amtOut = await dex.getAmountOut(amtIn, resIn, resOut);
+    document.getElementById("swapAmountOut").value = ethers.utils.formatEther(amtOut);
+    const fee = parseFloat(inVal) * 0.003;
+    const minOut = parseFloat(ethers.utils.formatEther(amtOut)) * (1 - slippage/100);
+    document.getElementById("swapFee").textContent = fee.toFixed(4) + (swapDirection==="AtoB" ? " USDO" : " OPNB");
+    document.getElementById("swapMin").textContent = minOut.toFixed(4) + (swapDirection==="AtoB" ? " OPNB" : " USDO");
+  } catch(e) {}
+}
+
+function flipSwap() {
+  swapDirection = swapDirection === "AtoB" ? "BtoA" : "AtoB";
+  document.getElementById("swapAmountIn").value = "";
+  document.getElementById("swapAmountOut").value = "";
+  // Swap token badge labels
+  const badges = document.querySelectorAll("#tab-swap .token-badge");
+  if (swapDirection === "AtoB") {
+    badges[0].innerHTML = '<div class="token-dot dot-a"></div>USDO';
+    badges[1].innerHTML = '<div class="token-dot dot-b"></div>OPNB';
+  } else {
+    badges[0].innerHTML = '<div class="token-dot dot-b"></div>OPNB';
+    badges[1].innerHTML = '<div class="token-dot dot-a"></div>USDO';
+  }
+}
+
+async function executeSwap() {
+  const inVal = document.getElementById("swapAmountIn").value;
+  const outVal = document.getElementById("swapAmountOut").value;
+  if (!inVal || !outVal) return;
+  try {
+    showToast("Approving token...", "loading");
+    const amtIn = parse(inVal);
+    const minOut = parse((parseFloat(outVal) * (1 - slippage/100)).toFixed(18));
+    const tkIn = swapDirection === "AtoB" ? tokenA : tokenB;
+    await (await tkIn.approve(CONFIG.DEX, amtIn)).wait();
+    showToast("Swapping...", "loading");
+    const tx = swapDirection === "AtoB"
+      ? await dex.swapAforB(amtIn, minOut)
+      : await dex.swapBforA(amtIn, minOut);
+    await tx.wait();
+    showToast(`✅ Swap success! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank">View TX</a>`, "success");
+    document.getElementById("swapAmountIn").value = "";
+    document.getElementById("swapAmountOut").value = "";
+    await refreshAll();
+  } catch(e) {
+    showToast("Swap failed: " + (e.reason || e.message), "error");
+  }
+}
+
+// ── Add Liquidity ─────────────────────────────────────────────────────────
+async function calcAddB() {
+  const aVal = document.getElementById("addAmountA").value;
+  if (!aVal || poolInfo.resA === 0n || poolInfo.resB === 0n) return;
+  try {
+    const amtA = parse(aVal);
+    const amtB = await dex.quote(amtA, poolInfo.resA, poolInfo.resB);
+    document.getElementById("addAmountB").value = ethers.utils.formatEther(amtB);
+    if (poolInfo.totalLP > 0n) {
+      const lpEst = (amtA * poolInfo.totalLP) / poolInfo.resA;
+      const share = (lpEst * 10000n) / (poolInfo.totalLP + lpEst);
+      document.getElementById("lpEstimate").textContent = fmt(lpEst);
+      document.getElementById("poolShare").textContent = (Number(share)/100).toFixed(2) + "%";
+    }
+  } catch(e) {}
+}
+
+async function executeAddLiquidity() {
+  const aVal = document.getElementById("addAmountA").value;
+  const bVal = document.getElementById("addAmountB").value;
+  if (!aVal || !bVal) return;
+  try {
+    const amtA = parse(aVal);
+    const amtB = parse(bVal);
+    showToast("Approving tokens...", "loading");
+    await (await tokenA.approve(CONFIG.DEX, amtA)).wait();
+    await (await tokenB.approve(CONFIG.DEX, amtB)).wait();
+    showToast("Adding liquidity...", "loading");
+    const minA = amtA * BigInt(Math.floor((1 - slippage/100) * 1000)) / 1000n;
+    const minB = amtB * BigInt(Math.floor((1 - slippage/100) * 1000)) / 1000n;
+    const tx = await dex.addLiquidity(amtA, amtB, minA, minB);
+    await tx.wait();
+    showToast(`✅ Liquidity added! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank">View TX</a>`, "success");
+    document.getElementById("addAmountA").value = "";
+    document.getElementById("addAmountB").value = "";
+    await refreshAll();
+  } catch(e) {
+    showToast("Failed: " + (e.reason || e.message), "error");
+  }
+}
+
+// ── Remove Liquidity ──────────────────────────────────────────────────────
+function calcRemoveOut() {
+  const lpVal = document.getElementById("removeAmount").value;
+  if (!lpVal || poolInfo.totalLP === 0n) return;
+  try {
+    const lp = parse(lpVal);
+    const outA = (lp * poolInfo.resA) / poolInfo.totalLP;
+    const outB = (lp * poolInfo.resB) / poolInfo.totalLP;
+    document.getElementById("removeA").textContent = fmt(outA) + " USDO";
+    document.getElementById("removeB").textContent = fmt(outB) + " OPNB";
+  } catch(e) {}
+}
+
+async function executeRemoveLiquidity() {
+  const lpVal = document.getElementById("removeAmount").value;
+  if (!lpVal) return;
+  try {
+    const lp = parse(lpVal);
+    showToast("Approving LP token...", "loading");
+    await (await dex.approve(CONFIG.DEX, lp)).wait();
+    showToast("Removing liquidity...", "loading");
+    const tx = await dex.removeLiquidity(lp, 0, 0);
+    await tx.wait();
+    showToast(`✅ Liquidity removed! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank">View TX</a>`, "success");
+    document.getElementById("removeAmount").value = "";
+    await refreshAll();
+  } catch(e) {
+    showToast("Failed: " + (e.reason || e.message), "error");
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────
+function setSlippage(val, btn) {
+  slippage = val;
+  document.querySelectorAll(".slip-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+}
+
+function setMaxA() {
+  const bal = document.getElementById("balA").textContent;
+  document.getElementById("swapAmountIn").value = bal.replace(/,/g,'');
+  calcSwapOut();
+}
+
+function setMaxLP() {
+  const bal = document.getElementById("maxLP").textContent;
+  document.getElementById("removeAmount").value = bal.replace(/,/g,'');
+  calcRemoveOut();
+}
+
+function enableButtons() {
+  document.getElementById("swapBtn").disabled = false;
+  document.getElementById("swapBtn").textContent = "Swap";
+  document.getElementById("addBtn").disabled = false;
+  document.getElementById("addBtn").textContent = "Add Liquidity";
+  document.getElementById("removeBtn").disabled = false;
+  document.getElementById("removeBtn").textContent = "Remove Liquidity";
+}
+
+let toastTimer;
+function showToast(msg, type="loading") {
+  const t = document.getElementById("toast");
+  t.innerHTML = msg;
+  t.className = "toast " + type + " show";
+  clearTimeout(toastTimer);
+  if (type !== "loading") {
+    toastTimer = setTimeout(() => t.classList.remove("show"), 5000);
+  }
+}
+
+// Auto-connect if already authorized
+window.addEventListener("load", async () => {
+  if (window.ethereum) {
+    const accounts = await window.ethereum.request({ method: "eth_accounts" });
+    if (accounts.length > 0) connectWallet();
+  }
+});
+</script>
+</body>
+</html>
