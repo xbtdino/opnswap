@@ -30,7 +30,6 @@
     overflow-x: hidden;
   }
 
-  /* Background grid */
   body::before {
     content: '';
     position: fixed;
@@ -43,7 +42,6 @@
     z-index: 0;
   }
 
-  /* Glow orbs */
   .orb {
     position: fixed;
     border-radius: 50%;
@@ -55,10 +53,8 @@
   .orb1 { width: 400px; height: 400px; background: var(--accent); top: -100px; left: -100px; }
   .orb2 { width: 300px; height: 300px; background: var(--accent2); bottom: -50px; right: -50px; }
 
-  /* Layout */
   .app { position: relative; z-index: 1; max-width: 520px; margin: 0 auto; padding: 24px 16px; }
 
-  /* Header */
   header {
     display: flex;
     justify-content: space-between;
@@ -82,7 +78,6 @@
   }
   .logo span { color: var(--accent); }
 
-  /* Connect button */
   .btn-connect {
     background: linear-gradient(135deg, var(--accent), var(--accent2));
     border: none;
@@ -103,7 +98,6 @@
     border: 1px solid var(--border);
   }
 
-  /* Network badge */
   .network-badge {
     display: flex; align-items: center; gap: 6px;
     background: var(--surface);
@@ -123,7 +117,6 @@
   }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  /* Pool stats */
   .pool-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -140,7 +133,6 @@
   .stat-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
   .stat-value { font-size: 15px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
 
-  /* Tab switcher */
   .tabs {
     display: flex;
     background: var(--surface);
@@ -151,14 +143,14 @@
   }
   .tab {
     flex: 1;
-    padding: 10px;
+    padding: 10px 4px;
     border: none;
     border-radius: 12px;
     background: transparent;
     color: var(--muted);
     font-family: var(--font);
     font-weight: 600;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
   }
@@ -168,7 +160,6 @@
     box-shadow: inset 0 0 0 1px var(--border);
   }
 
-  /* Card */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -176,7 +167,6 @@
     padding: 20px;
   }
 
-  /* Token input */
   .token-input-wrap {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -225,7 +215,6 @@
   .dot-a { background: var(--accent); }
   .dot-b { background: var(--accent2); }
 
-  /* Swap arrow */
   .swap-arrow {
     display: flex;
     justify-content: center;
@@ -244,7 +233,6 @@
   }
   .arrow-btn:hover { background: var(--border); transform: rotate(180deg); }
 
-  /* Info row */
   .info-row {
     display: flex;
     justify-content: space-between;
@@ -256,7 +244,6 @@
   .info-row .label { color: var(--muted); }
   .info-row .value { font-family: var(--mono); font-weight: 500; color: var(--text); }
 
-  /* Main action button */
   .btn-action {
     width: 100%;
     padding: 16px;
@@ -281,8 +268,13 @@
     box-shadow: none;
   }
   .btn-action.danger { background: linear-gradient(135deg, var(--danger), var(--accent3)); }
+  .btn-action.outline {
+    background: var(--surface2);
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  .btn-action.outline:hover { box-shadow: 0 8px 30px rgba(0,212,255,0.12); }
 
-  /* Slippage */
   .slippage-row {
     display: flex;
     align-items: center;
@@ -304,7 +296,6 @@
   }
   .slip-btn.active { border-color: var(--accent); color: var(--accent); }
 
-  /* Toast */
   .toast {
     position: fixed;
     bottom: 24px;
@@ -326,13 +317,10 @@
   .toast.error { border-color: var(--danger); color: var(--danger); }
   .toast.loading { border-color: var(--accent); color: var(--accent); }
 
-  /* Tx link */
   .tx-link { color: var(--accent); text-decoration: underline; font-family: var(--mono); font-size: 12px; }
 
-  /* Section title */
   .section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 10px; }
 
-  /* LP position */
   .lp-position {
     background: var(--surface2);
     border: 1px solid var(--border);
@@ -344,7 +332,35 @@
   .lp-row .lbl { color: var(--muted); }
   .lp-row .val { font-family: var(--mono); color: var(--accent2); }
 
-  /* Animations */
+  .faucet-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .faucet-token { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+  .faucet-amount { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 2px; }
+  .btn-claim {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--accent2);
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .btn-claim:hover { border-color: var(--accent2); box-shadow: 0 4px 16px rgba(0,255,136,0.15); }
+  .btn-claim:disabled { color: var(--muted); cursor: not-allowed; box-shadow: none; }
+  .faucet-note { font-size: 12px; color: var(--muted); text-align: center; margin-top: 14px; line-height: 1.5; }
+
   @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   .card { animation: fadeIn 0.3s ease; }
 
@@ -356,7 +372,6 @@
 <div class="orb orb2"></div>
 
 <div class="app">
-  <!-- Header -->
   <header>
     <div class="logo">
       <div class="logo-icon">⚡</div>
@@ -371,7 +386,6 @@
     </div>
   </header>
 
-  <!-- Pool Stats -->
   <div class="pool-stats">
     <div class="stat-card">
       <div class="stat-label">Reserve A</div>
@@ -387,14 +401,13 @@
     </div>
   </div>
 
-  <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" onclick="switchTab('swap')">⇄ Swap</button>
-    <button class="tab" onclick="switchTab('add')">＋ Add Liquidity</button>
+    <button class="tab" onclick="switchTab('add')">＋ Add</button>
     <button class="tab" onclick="switchTab('remove')">－ Remove</button>
+    <button class="tab" onclick="switchTab('faucet')">🚰 Faucet</button>
   </div>
 
-  <!-- SWAP TAB -->
   <div id="tab-swap" class="card">
     <div class="token-input-wrap">
       <div class="input-top">
@@ -453,7 +466,6 @@
     <button class="btn-action" id="swapBtn" onclick="executeSwap()" disabled>Connect Wallet</button>
   </div>
 
-  <!-- ADD LIQUIDITY TAB -->
   <div id="tab-add" class="card hidden">
     <div class="token-input-wrap">
       <div class="input-top">
@@ -491,7 +503,6 @@
     <button class="btn-action" id="addBtn" onclick="executeAddLiquidity()" disabled>Connect Wallet</button>
   </div>
 
-  <!-- REMOVE LIQUIDITY TAB -->
   <div id="tab-remove" class="card hidden">
     <div class="lp-position">
       <div class="section-title">Your Position</div>
@@ -522,13 +533,35 @@
 
     <button class="btn-action danger" id="removeBtn" onclick="executeRemoveLiquidity()" disabled>Connect Wallet</button>
   </div>
+
+  <div id="tab-faucet" class="card hidden">
+    <div class="section-title">Claim Testnet Tokens</div>
+
+    <div class="faucet-row">
+      <div>
+        <div class="faucet-token"><div class="token-dot dot-a"></div>USDO</div>
+        <div class="faucet-amount">Balance: <span id="faucetBalA">0</span></div>
+      </div>
+      <button class="btn-claim" id="claimABtn" onclick="claimFaucet('A')" disabled>Connect Wallet</button>
+    </div>
+
+    <div class="faucet-row">
+      <div>
+        <div class="faucet-token"><div class="token-dot dot-b"></div>OPNB</div>
+        <div class="faucet-amount">Balance: <span id="faucetBalB">0</span></div>
+      </div>
+      <button class="btn-claim" id="claimBBtn" onclick="claimFaucet('B')" disabled>Connect Wallet</button>
+    </div>
+
+    <button class="btn-action outline" id="claimAllBtn" onclick="claimFaucetAll()" disabled>Connect Wallet</button>
+
+    <div class="faucet-note">Faucet tokens are for OPN Testnet use only and have no real value. Limited by a per-wallet cooldown set in the token contract.</div>
+  </div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Config — replace with your deployed addresses ─────────────────────────
 const CONFIG = {
   chainId: 984,
   rpc: "https://testnet-rpc.iopn.tech",
@@ -556,12 +589,13 @@ const DEX_ABI = [
   "function totalSupply() view returns (uint256)",
 ];
 
-// ── State ─────────────────────────────────────────────────────────────────
 let provider, signer, account;
 let tokenA, tokenB, dex;
 let slippage = 0.5;
-let swapDirection = "AtoB"; // "AtoB" or "BtoA"
+let swapDirection = "AtoB";
 let poolInfo = { resA: 0n, resB: 0n, totalLP: 0n };
+
+const TABS = ["swap","add","remove","faucet"];
 
 const fmt = (v, d=4) => {
   const n = parseFloat(ethers.utils.formatEther(v));
@@ -569,14 +603,12 @@ const fmt = (v, d=4) => {
 };
 const parse = (v) => ethers.utils.parseEther(v || "0");
 
-// ── Connect ───────────────────────────────────────────────────────────────
 async function connectWallet() {
   if (!window.ethereum) { showToast("Please install MetaMask!", "error"); return; }
   try {
     provider = new ethers.providers.Web3Provider(window.ethereum);
     await provider.send("eth_requestAccounts", []);
 
-    // Switch to OPN Testnet
     const chainId = await provider.send("eth_chainId", []);
     if (parseInt(chainId, 16) !== CONFIG.chainId) {
       try {
@@ -617,7 +649,6 @@ async function connectWallet() {
 async function refreshAll() {
   if (!account) return;
   try {
-    // Pool info
     const [resA, resB, totalLP] = await dex.getPoolInfo();
     poolInfo = { resA, resB, totalLP };
 
@@ -625,7 +656,6 @@ async function refreshAll() {
     document.getElementById("reserveB").textContent = fmt(resB);
     document.getElementById("lpSupply").textContent = fmt(totalLP);
 
-    // Balances
     const bA = await tokenA.balanceOf(account);
     const bB = await tokenB.balanceOf(account);
     const bLP = await dex.balanceOf(account);
@@ -636,8 +666,9 @@ async function refreshAll() {
     document.getElementById("addBalB").textContent = fmt(bB);
     document.getElementById("myLP").textContent = fmt(bLP);
     document.getElementById("maxLP").textContent = fmt(bLP);
+    document.getElementById("faucetBalA").textContent = fmt(bA);
+    document.getElementById("faucetBalB").textContent = fmt(bB);
 
-    // LP position
     if (poolInfo.totalLP > 0n) {
       const shareA = (bLP * poolInfo.resA) / poolInfo.totalLP;
       const shareB = (bLP * poolInfo.resB) / poolInfo.totalLP;
@@ -645,7 +676,6 @@ async function refreshAll() {
       document.getElementById("myShareB").textContent = fmt(shareB);
     }
 
-    // Rate
     if (poolInfo.resA > 0n && poolInfo.resB > 0n) {
       const rate = parseFloat(ethers.utils.formatEther(poolInfo.resB)) /
                    parseFloat(ethers.utils.formatEther(poolInfo.resA));
@@ -655,17 +685,15 @@ async function refreshAll() {
   } catch(e) { console.error(e); }
 }
 
-// ── Tab Switching ─────────────────────────────────────────────────────────
 function switchTab(tab) {
-  ["swap","add","remove"].forEach(t => {
+  TABS.forEach((t, i) => {
     document.getElementById("tab-"+t).classList.add("hidden");
-    document.querySelectorAll(".tab")[["swap","add","remove"].indexOf(t)].classList.remove("active");
+    document.querySelectorAll(".tab")[i].classList.remove("active");
   });
   document.getElementById("tab-"+tab).classList.remove("hidden");
-  document.querySelectorAll(".tab")[["swap","add","remove"].indexOf(tab)].classList.add("active");
+  document.querySelectorAll(".tab")[TABS.indexOf(tab)].classList.add("active");
 }
 
-// ── Swap Logic ────────────────────────────────────────────────────────────
 async function calcSwapOut() {
   const inVal = document.getElementById("swapAmountIn").value;
   if (!inVal || !account || poolInfo.resA === 0n) return;
@@ -687,7 +715,6 @@ function flipSwap() {
   swapDirection = swapDirection === "AtoB" ? "BtoA" : "AtoB";
   document.getElementById("swapAmountIn").value = "";
   document.getElementById("swapAmountOut").value = "";
-  // Swap token badge labels
   const badges = document.querySelectorAll("#tab-swap .token-badge");
   if (swapDirection === "AtoB") {
     badges[0].innerHTML = '<div class="token-dot dot-a"></div>USDO';
@@ -722,7 +749,6 @@ async function executeSwap() {
   }
 }
 
-// ── Add Liquidity ─────────────────────────────────────────────────────────
 async function calcAddB() {
   const aVal = document.getElementById("addAmountA").value;
   if (!aVal || poolInfo.resA === 0n || poolInfo.resB === 0n) return;
@@ -763,7 +789,6 @@ async function executeAddLiquidity() {
   }
 }
 
-// ── Remove Liquidity ──────────────────────────────────────────────────────
 function calcRemoveOut() {
   const lpVal = document.getElementById("removeAmount").value;
   if (!lpVal || poolInfo.totalLP === 0n) return;
@@ -794,7 +819,47 @@ async function executeRemoveLiquidity() {
   }
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────
+async function claimFaucet(which) {
+  const token = which === "A" ? tokenA : tokenB;
+  const label = which === "A" ? "USDO" : "OPNB";
+  const btn = document.getElementById(which === "A" ? "claimABtn" : "claimBBtn");
+  try {
+    btn.disabled = true;
+    btn.textContent = "Claiming...";
+    showToast(`Claiming ${label}...`, "loading");
+    const tx = await token.faucet();
+    await tx.wait();
+    showToast(`✅ Claimed ${label}! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank">View TX</a>`, "success");
+    await refreshAll();
+  } catch(e) {
+    showToast(`Claim failed: ` + (e.reason || e.message), "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = `Claim ${label}`;
+  }
+}
+
+async function claimFaucetAll() {
+  const btn = document.getElementById("claimAllBtn");
+  try {
+    btn.disabled = true;
+    btn.textContent = "Claiming...";
+    showToast("Claiming USDO...", "loading");
+    const tx1 = await tokenA.faucet();
+    await tx1.wait();
+    showToast("Claiming OPNB...", "loading");
+    const tx2 = await tokenB.faucet();
+    await tx2.wait();
+    showToast(`✅ Claimed both tokens! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx2.hash}" target="_blank">View TX</a>`, "success");
+    await refreshAll();
+  } catch(e) {
+    showToast("Claim failed: " + (e.reason || e.message), "error");
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Claim Both Tokens";
+  }
+}
+
 function setSlippage(val, btn) {
   slippage = val;
   document.querySelectorAll(".slip-btn").forEach(b => b.classList.remove("active"));
@@ -820,6 +885,12 @@ function enableButtons() {
   document.getElementById("addBtn").textContent = "Add Liquidity";
   document.getElementById("removeBtn").disabled = false;
   document.getElementById("removeBtn").textContent = "Remove Liquidity";
+  document.getElementById("claimABtn").disabled = false;
+  document.getElementById("claimABtn").textContent = "Claim USDO";
+  document.getElementById("claimBBtn").disabled = false;
+  document.getElementById("claimBBtn").textContent = "Claim OPNB";
+  document.getElementById("claimAllBtn").disabled = false;
+  document.getElementById("claimAllBtn").textContent = "Claim Both Tokens";
 }
 
 let toastTimer;
@@ -833,7 +904,6 @@ function showToast(msg, type="loading") {
   }
 }
 
-// Auto-connect if already authorized
 window.addEventListener("load", async () => {
   if (window.ethereum) {
     const accounts = await window.ethereum.request({ method: "eth_accounts" });
