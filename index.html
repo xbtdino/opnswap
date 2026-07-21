@@ -566,9 +566,9 @@ const CONFIG = {
   chainId: 984,
   rpc: "https://testnet-rpc.iopn.tech",
   explorer: "https://testnet.iopn.tech",
-  TOKEN_A: "0x499fAc4133486CD56b3554e4Ef296372A1B0281d", // Replace after deploy
-  TOKEN_B: "0xC3F4313E3799C3A422bCDa2c171106c673Ce4D11", // Replace after deploy
-  DEX:     "0x3B6B7f3b0293d68763b1C2A060C0207b3c65f761", // Replace after deploy
+  TOKEN_A: "0x499fAc4133486CD56b3554e4Ef296372A1B0281d",
+  TOKEN_B: "0xC3F4313E3799C3A422bCDa2c171106c673Ce4D11",
+  DEX:     "0x3B6B7f3b0293d68763b1C2A060C0207b3c65f761"
 };
 
 const ERC20_ABI = [
@@ -593,7 +593,7 @@ let provider, signer, account;
 let tokenA, tokenB, dex;
 let slippage = 0.5;
 let swapDirection = "AtoB";
-let poolInfo = { resA: 0n, resB: 0n, totalLP: 0n };
+let poolInfo = { resA: ethers.BigNumber.from(0), resB: ethers.BigNumber.from(0), totalLP: ethers.BigNumber.from(0) };
 
 const TABS = ["swap","add","remove","faucet"];
 
@@ -669,14 +669,14 @@ async function refreshAll() {
     document.getElementById("faucetBalA").textContent = fmt(bA);
     document.getElementById("faucetBalB").textContent = fmt(bB);
 
-    if (poolInfo.totalLP > 0n) {
-      const shareA = (bLP * poolInfo.resA) / poolInfo.totalLP;
-      const shareB = (bLP * poolInfo.resB) / poolInfo.totalLP;
+    if (!poolInfo.totalLP.isZero()) {
+      const shareA = bLP.mul(poolInfo.resA).div(poolInfo.totalLP);
+      const shareB = bLP.mul(poolInfo.resB).div(poolInfo.totalLP);
       document.getElementById("myShareA").textContent = fmt(shareA);
       document.getElementById("myShareB").textContent = fmt(shareB);
     }
 
-    if (poolInfo.resA > 0n && poolInfo.resB > 0n) {
+    if (!poolInfo.resA.isZero() && !poolInfo.resB.isZero()) {
       const rate = parseFloat(ethers.utils.formatEther(poolInfo.resB)) /
                    parseFloat(ethers.utils.formatEther(poolInfo.resA));
       document.getElementById("swapRate").textContent =
@@ -696,7 +696,7 @@ function switchTab(tab) {
 
 async function calcSwapOut() {
   const inVal = document.getElementById("swapAmountIn").value;
-  if (!inVal || !account || poolInfo.resA === 0n) return;
+  if (!inVal || !account || poolInfo.resA.isZero()) return;
   try {
     const amtIn = parse(inVal);
     const [resIn, resOut] = swapDirection === "AtoB"
@@ -751,14 +751,14 @@ async function executeSwap() {
 
 async function calcAddB() {
   const aVal = document.getElementById("addAmountA").value;
-  if (!aVal || poolInfo.resA === 0n || poolInfo.resB === 0n) return;
+  if (!aVal || poolInfo.resA.isZero() || poolInfo.resB.isZero()) return;
   try {
     const amtA = parse(aVal);
     const amtB = await dex.quote(amtA, poolInfo.resA, poolInfo.resB);
     document.getElementById("addAmountB").value = ethers.utils.formatEther(amtB);
-    if (poolInfo.totalLP > 0n) {
-      const lpEst = (amtA * poolInfo.totalLP) / poolInfo.resA;
-      const share = (lpEst * 10000n) / (poolInfo.totalLP + lpEst);
+    if (!poolInfo.totalLP.isZero()) {
+      const lpEst = amtA.mul(poolInfo.totalLP).div(poolInfo.resA);
+      const share = lpEst.mul(10000).div(poolInfo.totalLP.add(lpEst));
       document.getElementById("lpEstimate").textContent = fmt(lpEst);
       document.getElementById("poolShare").textContent = (Number(share)/100).toFixed(2) + "%";
     }
@@ -776,8 +776,9 @@ async function executeAddLiquidity() {
     await (await tokenA.approve(CONFIG.DEX, amtA)).wait();
     await (await tokenB.approve(CONFIG.DEX, amtB)).wait();
     showToast("Adding liquidity...", "loading");
-    const minA = amtA * BigInt(Math.floor((1 - slippage/100) * 1000)) / 1000n;
-    const minB = amtB * BigInt(Math.floor((1 - slippage/100) * 1000)) / 1000n;
+    const slipBps = Math.floor((1 - slippage/100) * 1000);
+    const minA = amtA.mul(slipBps).div(1000);
+    const minB = amtB.mul(slipBps).div(1000);
     const tx = await dex.addLiquidity(amtA, amtB, minA, minB);
     await tx.wait();
     showToast(`✅ Liquidity added! <a class="tx-link" href="${CONFIG.explorer}/tx/${tx.hash}" target="_blank">View TX</a>`, "success");
@@ -791,11 +792,11 @@ async function executeAddLiquidity() {
 
 function calcRemoveOut() {
   const lpVal = document.getElementById("removeAmount").value;
-  if (!lpVal || poolInfo.totalLP === 0n) return;
+  if (!lpVal || poolInfo.totalLP.isZero()) return;
   try {
     const lp = parse(lpVal);
-    const outA = (lp * poolInfo.resA) / poolInfo.totalLP;
-    const outB = (lp * poolInfo.resB) / poolInfo.totalLP;
+    const outA = lp.mul(poolInfo.resA).div(poolInfo.totalLP);
+    const outB = lp.mul(poolInfo.resB).div(poolInfo.totalLP);
     document.getElementById("removeA").textContent = fmt(outA) + " USDO";
     document.getElementById("removeB").textContent = fmt(outB) + " OPNB";
   } catch(e) {}
